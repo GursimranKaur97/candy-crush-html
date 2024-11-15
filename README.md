@@ -31,4 +31,4 @@ To get a local copy up and running, follow these simple steps:
 2. Navigate to the project directory:
 cd candy-crush-html
 
-3. Open index.html in your web browser.
+3. RUN:: node server.js in your terminal and open http://localhost:3000.

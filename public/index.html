@@ -1,0 +1,238 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candy Crush</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff69b4; /* Candy pink color */
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .button {
+            background-color: #ff69b4; /* Candy pink color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #ff1493; /* Darker pink on hover */
+        }
+
+        #gameBoard {
+            display: none; /* Hide the game board initially */
+            margin-top: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); /* 6 columns */
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: #ffcccb; /* Light candy color */
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: #fff;
+            cursor: pointer; /* Pointer cursor for clickable cells */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Candy Crush!</h1>
+        <p>Get ready to match some candies and crush your way to victory!</p>
+        <button class="button" id="startGameButton">Start Game</button>
+        <div id="gameBoard">
+            <h2>Candy Crush Game Board</h2>
+            <div class="grid" id="grid"></div>
+            <p id="score">Score: 0</p>
+        </div>
+    </div>
+
+    <script>
+        let firstCell = null;
+        let secondCell = null;
+        let score = 0;
+        const gridSize = 6; // 6x6 grid
+        const grid = [];
+
+        document.getElementById('startGameButton').addEventListener('click', function() {
+            document.querySelector('h1').style.display = 'none';
+            document.querySelector('p').style.display = 'none';
+            document.getElementById('startGameButton').style.display = 'none';
+            document.getElementById('gameBoard').style.display = 'block';
+            createGameBoard();
+        });
+
+        function createGameBoard() {
+            const gridElement = document.getElementById('grid');
+            gridElement.innerHTML = '';
+            grid.length = 0; // Clear the grid array
+
+            for (let i = 0; i < gridSize; i++) {
+                const row = [];
+                for (let j = 0; j < gridSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const candy = getRandomCandy();
+                    cell.textContent = candy;
+                    cell.setAttribute('data-index', `${i}-${j}`); // Store index for reference
+                    cell.addEventListener('click', handleCellClick);
+                    gridElement.appendChild(cell);
+                    row.push(candy); // Fill the row with candies
+                }
+                grid.push(row); // Fill the grid with rows
+            }
+        }
+
+        function getRandomCandy() {
+            const candies = ['🍬', '🍭', '🍫 ', '🍡', '🍩', '🍪'];
+            return candies[Math.floor(Math.random() * candies.length)];
+        }
+
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+
+            if (!firstCell) {
+                firstCell = clickedCell;
+                firstCell.style.border = '2px solid #ff1493'; // Highlight the first selected cell
+            } else if (!secondCell && clickedCell !== firstCell) {
+                secondCell = clickedCell;
+                secondCell.style.border = '2px solid #ff1493'; // Highlight the second selected cell
+
+                // Swap the candies
+                swapCandies(firstCell, secondCell);
+                if (!checkForMatches()) {
+                    // If no match, swap back
+                    setTimeout(() => {
+                        swapCandies(firstCell, secondCell);
+                    }, 1000);
+                }
+
+                // Reset selection
+                firstCell.style.border = 'none';
+                secondCell.style.border = 'none';
+                firstCell = null;
+                secondCell = null;
+            }
+        }
+
+        function swapCandies(cell1, cell2) {
+            const temp = cell1.textContent;
+            cell1.textContent = cell2.textContent;
+            cell2.textContent = temp;
+
+            // Update the grid array
+            const index1 = cell1.getAttribute('data-index').split('-').map(Number);
+            const index2 = cell2.getAttribute('data-index').split('-').map(Number);
+            grid[index1[0]][index1[1]] = cell1.textContent;
+            grid[index2[0]][index2[1]] = cell2.textContent;
+        }
+
+        function checkForMatches() {
+            let matched = false;
+
+            // Check for horizontal matches
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize - 2; j++) {
+                    if (grid[i][j] === grid[i][j + 1] && grid[i][j] === grid[i][j + 2]) {
+                        matched = true;
+                        score += 10; // Increment score
+                        document.getElementById('score').textContent = `Score: ${score}`;
+                        removeMatchedCandies(i, j, 'horizontal');
+                    }
+                }
+            }
+
+            // Check for vertical matches
+            for (let j = 0; j < gridSize; j++) {
+                for (let i = 0; i < gridSize - 2; i++) {
+                    if (grid[i][j] === grid[i + 1][j] && grid[i][j] === grid[i + 2][j]) {
+                        matched = true;
+                        score += 10; // Increment score
+                        document.getElementById('score').textContent = `Score: ${score}`;
+                        removeMatchedCandies(i, j, 'vertical');
+                    }
+                }
+            }
+
+            return matched;
+        }
+
+        function removeMatchedCandies(startRow, startCol, direction) {
+            if (direction === 'horizontal') {
+                for (let j = 0; j < 3; j++) {
+                    grid[startRow][startCol + j] = null; // Mark for removal
+                    const cell = document.querySelector(`[data-index="${startRow}-${startCol + j}"]`);
+                    cell.textContent = ''; // Clear the cell
+                }
+            } else if (direction === 'vertical') {
+                for (let i = 0; i < 3; i++) {
+                    grid[startRow + i][startCol] = null; // Mark for removal
+                    const cell = document.querySelector(`[data-index="${startRow + i}-${startCol}"]`);
+                    cell.textContent = ''; // Clear the cell
+                }
+            }
+
+            refillGrid();
+        }
+
+        function refillGrid() {
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === null) {
+                        const newCandy = getRandomCandy();
+                        grid[i][j] = newCandy; // Fill with new candy
+                        const cell = document.querySelector(`[data-index="${i}-${j}"]`);
+                        cell.textContent = newCandy; // Update the cell
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

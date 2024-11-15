@@ -26,7 +26,7 @@ To get a local copy up and running, follow these simple steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/candy-crush-html.git
+   git clone https://github.com/GursimranKaur97/candy-crush-html.git
 
 2. Navigate to the project directory:
 cd candy-crush-html
